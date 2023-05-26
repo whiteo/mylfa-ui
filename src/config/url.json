@@ -1,0 +1,9 @@
+{
+  "url": {
+    "authenticate": "http://127.0.0.1:8080/mylfa/api/v1/authenticate",
+    "createUser": "http://127.0.0.1:8080/mylfa/api/v1/user/create",
+    "getUserData": "http://127.0.0.1:8080/mylfa/api/v1/user",
+    "version": "http://127.0.0.1:8080/mylfa/version",
+    "logout": "http://127.0.0.1:8080/mylfa/logout"
+  }
+}
