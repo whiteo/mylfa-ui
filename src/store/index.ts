@@ -1,19 +1,22 @@
-import { createStore } from 'vuex';
+import {createStore} from 'vuex';
 
 const store = createStore({
   state() {
     return {
       isLoggedIn: false,
-      token: null,
-      userId: null,
+      token: localStorage.getItem('token') || null,
+      userId: localStorage.getItem('userId') || null,
       account: '',
       verified: false,
     };
   },
   mutations: {
+    setLogIn(state) {
+      state.isLoggedIn = !!state.token;
+    },
     setToken(state, token) {
       state.token = token;
-      state.isLoggedIn = !!token;
+      localStorage.setItem('token', token);
     },
     clearToken(state) {
       state.token = null;
@@ -21,9 +24,12 @@ const store = createStore({
       state.userId = null;
       state.account = '';
       state.verified = false;
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
     },
     setUserId(state, userId) {
       state.userId = userId;
+      localStorage.setItem('userId', userId);
     },
     setAccount(state, account) {
       state.account = account;

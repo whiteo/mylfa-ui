@@ -12,14 +12,20 @@
     "sourceMap": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "noImplicitAny": false,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "types": [
       "node",
       "vuetify"
     ],
     "paths": {
-      "@/*": ["src/*"]
-    },
+      "@/*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
@@ -27,6 +33,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/**/*.json",
-    "vite.config.ts"
+    "vite.config.ts",
+    "package.json"
   ]
 }

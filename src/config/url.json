@@ -1,9 +1,29 @@
 {
-  "url": {
-    "authenticate": "http://127.0.0.1:8080/mylfa/api/v1/authenticate",
-    "createUser": "http://127.0.0.1:8080/mylfa/api/v1/user/create",
-    "getUserData": "http://127.0.0.1:8080/mylfa/api/v1/user",
-    "version": "http://127.0.0.1:8080/mylfa/version",
-    "logout": "http://127.0.0.1:8080/mylfa/logout"
+  "currency": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/currency-type"
+  },
+  "incomeCategory": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/income-category"
+  },
+  "outlayCategory": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/outlay-category"
+  },
+  "outlay": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/outlay"
+  },
+  "income": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/income"
+  },
+  "user": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/user"
+  },
+  "authenticate": {
+    "url": "http://db.whiteo.de:8080/mylfa/api/v1/authenticate"
+  },
+  "version": {
+    "url": "http://db.whiteo.de:8080/mylfa/version"
+  },
+  "logout": {
+    "url": "http://db.whiteo.de:8080/mylfa/logout"
   }
 }

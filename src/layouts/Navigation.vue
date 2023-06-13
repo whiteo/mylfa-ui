@@ -1,9 +1,8 @@
 <template>
   <v-app-bar color='primary' density='compact' location='top' scroll-behavior='collapse'>
-
     <v-menu transition='slide-y-transition'>
       <template v-slot:activator='{ props  }'>
-        <v-btn density='compact' :disabled='!store$.state.isLoggedIn' icon='mdi-apps' v-bind='props'></v-btn>
+        <v-btn :disabled='!store$.state.isLoggedIn' :icon="menuIcon" density='compact' v-bind='props'></v-btn>
       </template>
 
       <v-list density='compact' variant='plain' class='disable-select'>
@@ -17,15 +16,15 @@
                      :title="$t('category')" to='/category'>
         </v-list-item>
         <v-list-item variant='plain' density='compact' prepend-icon='mdi-bank-plus'
-                     :title="$t('income')" to="/income">
+                     :title="$t('income')" to='/income'>
         </v-list-item>
         <v-list-item variant='plain' density='compact' prepend-icon='mdi-bank-minus'
-                     :title="$t('outlay')" to="/outlay">
+                     :title="$t('outlay')" to='/outlay'>
         </v-list-item>
       </v-list>
     </v-menu>
 
-    <v-app-bar-title class='disable-select'>{{ $t('dashboard') }}</v-app-bar-title>
+    <v-app-bar-title class="disable-select">{{ pageTitle }}</v-app-bar-title>
 
     <v-menu>
       <template v-slot:activator='{ props }'>
@@ -51,10 +50,25 @@
         <v-row>
           <v-col v-for='(lang, index) in supportedLanguages' :key='index' cols='auto' density='compact'>
             <v-list-item @click="changeLanguage(lang)">
-              {{ lang }}
+              {{ $t(`titles.${lang}`) }}
             </v-list-item>
           </v-col>
         </v-row>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model='serviceUnavailable' class='disable-select' max-width='15%' persistent>
+      <v-card>
+        <v-toolbar :title="$t('serviceUnavailableTitel')" class='text-center' color='red'>
+        </v-toolbar>
+        <v-card-text class="text-center">
+          {{ $t('serviceUnavailableText') }}
+        </v-card-text>
+        <v-card-actions class='justify-end text-center'>
+          <v-btn class="mx-auto" color='red' variant='elevated' @click="serviceUnavailable = false">
+            OK
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-app-bar>
@@ -63,8 +77,9 @@
 <script lang='ts'>
 import {defineComponent, inject} from 'vue';
 import {useStore} from 'vuex';
-import {getAccountData, logout} from '@/api/api';
 import {useRouter} from 'vue-router';
+import {logout} from "@/api/util";
+import {getUser} from "@/api/user";
 
 export default defineComponent({
   setup() {
@@ -75,16 +90,31 @@ export default defineComponent({
   },
   data() {
     return {
-      selectedLanguage: 'en',
+      selectedLanguage: '',
       supportedLanguages: ['en', 'de', 'ru'],
       themeState: inject('themeState'),
       account: '',
       verified: false,
       languagesMenu: false,
+      serviceUnavailable: false,
     };
   },
+  created() {
+    this.initializeLanguage();
+  },
   methods: {
+    initializeLanguage() {
+      const lang = localStorage.getItem('lang');
+      if (lang && this.supportedLanguages.includes(lang)) {
+        this.selectedLanguage = lang;
+        this.$i18n.locale = lang;
+      } else {
+        this.selectedLanguage = 'en';
+        this.$i18n.locale = 'en';
+      }
+    },
     changeLanguage(lang) {
+      localStorage.setItem('lang', lang);
       this.selectedLanguage = lang;
       this.$i18n.locale = lang;
       this.languagesMenu = false;
@@ -100,8 +130,8 @@ export default defineComponent({
       }
     },
     async getUserData() {
-      const userId = this.store$.state.userId;
-      const accountData = await getAccountData(userId);
+      const token = this.store$.state.token;
+      const accountData = await getUser(token);
       this.store$.commit('setAccount', accountData.email);
       this.store$.commit('setVerified', accountData.verified);
       this.account = accountData.email;
@@ -114,10 +144,38 @@ export default defineComponent({
         this.getUserData();
       }
     },
+    '$store.state.account'(newValue) {
+      if (newValue) {
+        this.getUserData();
+      }
+    },
   },
   computed: {
-    themeIcon() {
-      return this.themeState.darkMode ? 'mdi-white-balance-sunny' : 'mdi-moon-waning-crescent';
+    pageTitle() {
+      const {path} = this.router$.currentRoute.value;
+      const pageTitles = {
+        '/dashboard': 'dashboard',
+        '/currency': 'currency',
+        '/category': 'category',
+        '/account': 'account',
+        '/income': 'income',
+        '/outlay': 'outlay',
+      };
+      const titleKey = pageTitles[path];
+      return this.$t(titleKey || 'dashboard');
+    },
+    menuIcon() {
+      const {path} = this.router$.currentRoute.value;
+      const iconMap = {
+        '/dashboard': 'mdi-view-dashboard',
+        '/currency': 'mdi-cash-multiple',
+        '/category': 'mdi-card-multiple',
+        '/account': 'mdi-account',
+        '/income': 'mdi-bank-plus',
+        '/outlay': 'mdi-bank-minus',
+        '/': 'mdi-apps',
+      };
+      return iconMap[path];
     },
     toggleTheme() {
       return this.themeState.toggleTheme();

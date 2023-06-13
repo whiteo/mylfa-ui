@@ -1,6 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import store from '@/store'
-import {validateToken} from '@/api/api';
+import {validateToken} from "@/api/util";
+import {getUser} from "@/api/user";
 
 const routes = [
   {
@@ -63,7 +64,7 @@ const routes = [
       {
         path: '',
         name: 'Category',
-        component: () => import('@/views/Currency.vue'),
+        component: () => import('@/views/Category.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -77,7 +78,7 @@ const routes = [
       {
         path: '',
         name: 'Income',
-        component: () => import('@/views/Currency.vue'),
+        component: () => import('@/views/Income.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -91,7 +92,7 @@ const routes = [
       {
         path: '',
         name: 'Outlay',
-        component: () => import('@/views/Currency.vue'),
+        component: () => import('@/views/Outlay.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -106,15 +107,19 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  const isLoggedIn = store.state.isLoggedIn;
+  const storedToken = localStorage.getItem('token');
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 
-  if (requiresAuth && !isLoggedIn) {
+  if (requiresAuth && !storedToken) {
     next('/');
   } else {
     try {
-      if (isLoggedIn) {
-        await validateToken();
+      if (storedToken) {
+        await validateToken(storedToken);
+        await getUserData(storedToken);
+      }
+      if (to.path === '/' && storedToken) {
+        next('/dashboard');
       }
       next();
     } catch (error) {
@@ -123,5 +128,12 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 });
+
+async function getUserData(token: string) {
+  const accountData = await getUser(token);
+  store.commit('setLogIn');
+  store.commit('setAccount', accountData.email);
+  store.commit('setVerified', accountData.verified);
+}
 
 export default router

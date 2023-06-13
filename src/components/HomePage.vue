@@ -2,31 +2,42 @@
   <v-container class='fill-height' fluid>
     <v-row align='center' justify='center'>
       <v-col cols='9' sm='8' md='3' lg='3'>
-        <v-card class='elevation-12' v-if="registration">
+        <v-card v-if='registration' class='elevation-12'>
           <v-toolbar color='primary' dark flat>
-            <v-toolbar-title class="disable-select">{{ $t('HomePageRegistrationTitelText') }}</v-toolbar-title>
+            <v-toolbar-title class="disable-select">
+              {{ $t('homePageRegistrationTitelText') }}
+            </v-toolbar-title>
             <v-spacer></v-spacer>
           </v-toolbar>
           <v-card-text>
             <v-form>
-              <v-text-field v-model='email' :label="$t('HomePageEmailText')" name='email'
-                            type='email' class='disable-select'>
+              <v-text-field v-model='email' :label="$t('homePageEmailText')" class='disable-select'
+                            clearable placeholder='mail@example.com' type='email'>
               </v-text-field>
-              <v-text-field v-model='password' counter='30' :label="$t('HomePagePasswordText')"
-                            name='password' type='password' class='disable-select'>
+              <v-text-field v-model='password.password' :label="$t('homePagePasswordText')" :placeholder="$t('homePagePasswordPlaceholderText')"
+                            :type='registrationPasswordFieldType' class='disable-select'
+                            clearable counter='30'>
+                <template v-if="password.password !== ''" v-slot:append-inner>
+                  <v-icon @click="toggleRegistrationPasswordFieldTypeVisibility">
+                    {{ registrationPasswordFieldType === 'password' ? 'mdi-eye' : 'mdi-eye-off' }}
+                  </v-icon>
+                </template>
               </v-text-field>
-              <v-text-field v-model='password.confirm' counter='30' :label="$t('HomePageConfirmPasswordText')"
-                            name='confirm password' type='password' class='disable-select'>
+              <v-text-field v-if="registrationPasswordFieldType === 'password'" v-model='password.confirm'
+                            :label="$t('homePageConfirmPasswordText')" :placeholder="$t('homePagePasswordPlaceholderText')"
+                            :type='registrationConfirmPasswordFieldType' class='disable-select'
+                            clearable
+                            counter='30' @click:append-inner='toggleRegistrationConfirmPasswordFieldTypeVisibility'>
               </v-text-field>
             </v-form>
           </v-card-text>
           <v-card-actions class='d-flex justify-space-between'>
             <v-btn class='mr-3' color='primary' variant='elevated' @click='onClickShowLoginWindow'>
-              {{ $t('HomePageLoginButton') }}
+              {{ $t('homePageLoginButton') }}
             </v-btn>
-            <v-btn class='ml-3' color='primary' :disabled='registrationDialog' variant='elevated'
-                   :loading='registrationDialog' @click='onClickRegisterButton'>
-              {{ $t('HomePageRegistrationButton') }}
+            <v-btn :disabled='registrationInProgress' :loading='registrationInProgress' class='ml-3' color='primary'
+                   variant='elevated' @click='onClickRegisterButton'>
+              {{ $t('homePageRegistrationButton') }}
             </v-btn>
           </v-card-actions>
           <v-alert v-model='alert' density='compact' dismissible dense type='error' closable
@@ -36,30 +47,40 @@
         </v-card>
         <v-card class='elevation-12' v-if="login">
           <v-toolbar color='primary' dark flat>
-            <v-toolbar-title class="disable-select">{{ $t('HomePageLoginTitelText') }}</v-toolbar-title>
+            <v-toolbar-title class="disable-select">
+              {{ $t('homePageLoginTitelText') }}
+            </v-toolbar-title>
             <v-spacer></v-spacer>
           </v-toolbar>
 
-          <v-card-text>
+          <v-card-text v-if='!isDemoOnly'>
             <v-form>
-              <v-text-field v-model.trim='email' :label="$t('HomePageEmailText')" name='email'
-                            type='email' class='disable-select'></v-text-field>
-              <v-text-field v-model.trim='password' :label="$t('HomePagePasswordText')"
-                            name='password' type='password' class='disable-select'></v-text-field>
+              <v-text-field v-model='email' :label="$t('homePageEmailText')" class='disable-select'
+                            clearable placeholder='mail@example.com' type='email'>
+              </v-text-field>
+              <v-text-field v-model='password.password' :label="$t('homePagePasswordText')" :placeholder="$t('homePagePasswordPlaceholderText')"
+                            :type='registrationPasswordFieldType' class='disable-select'
+                            clearable counter='30'>
+                <template v-if="password.password !== ''" v-slot:append-inner>
+                  <v-icon @click="toggleRegistrationPasswordFieldTypeVisibility">
+                    {{ registrationPasswordFieldType === 'password' ? 'mdi-eye' : 'mdi-eye-off' }}
+                  </v-icon>
+                </template>
+              </v-text-field>
             </v-form>
           </v-card-text>
           <v-card-actions class='d-flex justify-space-between'>
-            <v-btn class='mr-3' color='primary' :disabled="dialog" variant='elevated' :loading='dialog'
+            <v-btn v-if='!isDemoOnly' class='mr-3' color='primary' variant='elevated'
                    @click='onClickShowRegistrationWindow'>
-              {{ $t('HomePageRegistrationButton') }}
+              {{ $t('homePageRegistrationButton') }}
             </v-btn>
-            <v-btn class='mx-auto' color='primary' :disabled='dialog' variant='elevated' :loading='dialog'
-                   @click='onClickDemoButton'>
-              {{ $t('HomePageDemoButton') }}
+            <v-btn v-if='isDemoOnly' :disabled='demoLoginInProgress' :loading='demoLoginInProgress' class='mx-auto'
+                   color='primary' variant='elevated' @click='onClickDemoButton'>
+              {{ $t('homePageDemoButton') }}
             </v-btn>
-            <v-btn class='ml-3' color='primary' :disabled="dialog" variant='elevated' :loading='dialog'
-                   @click='onClickLoginButton'>
-              {{ $t('HomePageLoginButton') }}
+            <v-btn v-if='!isDemoOnly' :disabled='loginInProgress' :loading='loginInProgress' class='ml-3'
+                   color='primary' variant='elevated' @click='onClickLoginButton'>
+              {{ $t('homePageLoginButton') }}
             </v-btn>
           </v-card-actions>
           <v-alert v-model='alert' density='compact' dismissible dense type='error' closable
@@ -67,20 +88,20 @@
             {{ alertMessage }}
           </v-alert>
         </v-card>
-        <v-alert v-model='registrationSuccess' density='compact' dismissible dense type='success' closable
-                 v-click-outside='onClickOutsideAlert'>
-          {{ alertMessage }}
-        </v-alert>
-        <v-card class='elevation-12' v-if='registrationDialog'>
-          <v-dialog v-model='registrationDialog' hide-overlay persistent width='300'>
-            <v-card color='primary' dark>
-              <v-card-text>
-                {{ $t('HomePageInProgressText') }}
-                <v-progress-linear indeterminate color='white' class='mb-0'></v-progress-linear>
-              </v-card-text>
-            </v-card>
-          </v-dialog>
-        </v-card>
+        <v-sheet v-if="registrationSuccess" class="text-center mx-auto" elevation="12" rounded>
+          <v-icon class="mb-5" color="success" icon="mdi-check-circle" size="100">
+          </v-icon>
+          <h2 class="text-h5 mb-2">
+            {{ $t('homePageRegistrationSuccessTitelText') }}
+          </h2>
+          <p class="mb-4 text-medium-emphasis text-body-2">
+            {{ $t('homePageRegistrationSuccessText') }}
+          </p>
+          <v-divider class="mb-2"></v-divider>
+          <v-btn class="text-none mb-2" color='primary' variant='elevated' @click='onClickRegistrationSuccessButton'>
+            {{ $t('homePageRegistrationSuccessButton') }}
+          </v-btn>
+        </v-sheet>
       </v-col>
     </v-row>
   </v-container>
@@ -89,11 +110,12 @@
 <script lang='ts'>
 import {defineComponent} from 'vue';
 import {useVuelidate} from '@vuelidate/core';
-import {email, minLength, maxLength, required, sameAs} from '@vuelidate/validators';
-import axios from 'axios';
+import {email, maxLength, minLength, required, sameAs} from '@vuelidate/validators';
 import {useStore} from 'vuex';
 import {useRouter} from 'vue-router';
-import {getDemoToken} from '@/api/api';
+import {getDemoToken, getToken} from "@/api/util";
+import {createUser} from '@/api/user';
+import config from '../config/config.json';
 
 export default defineComponent({
   name: 'HomePage',
@@ -106,13 +128,18 @@ export default defineComponent({
   },
   data() {
     return {
+      isDemoOnly: false,
       login: true,
       registration: false,
-      dialog: false,
       alert: false,
       alertMessage: '',
-      registrationDialog: false,
       registrationSuccess: false,
+      registrationInProgress: false,
+      demoLoginInProgress: false,
+      loginInProgress: false,
+      registrationPasswordFieldType: 'password',
+      registrationConfirmPasswordFieldType: 'password',
+      loginPasswordFieldType: 'password',
       email: '',
       password: {
         password: '',
@@ -140,78 +167,108 @@ export default defineComponent({
       },
     }
   },
+  mounted() {
+    this.isDemoOnly = config.demoOnly;
+    if (this.isDemoOnly) {
+      this.alert = true;
+      this.alertMessage = 'Demo mode activated';
+    }
+  },
   methods: {
+    toggleRegistrationPasswordFieldTypeVisibility() {
+      this.registrationPasswordFieldType = this.registrationPasswordFieldType === 'password' ? 'text' : 'password';
+    },
+    toggleRegistrationConfirmPasswordFieldTypeVisibility() {
+      this.registrationConfirmPasswordFieldType = this.registrationConfirmPasswordFieldType === 'password' ? 'text' : 'password';
+    },
+    toggleLoginPasswordVisibility() {
+      this.loginPasswordFieldType = this.loginPasswordFieldType === 'password' ? 'text' : 'password';
+    },
     onClickShowRegistrationWindow() {
-      this.login = false
-      this.registration = true
+      this.email = '';
+      this.password.password = '';
+      this.password.confirm = '';
+      this.login = false;
+      this.registration = true;
+      this.registrationPasswordFieldType = 'password';
     },
     onClickShowLoginWindow() {
-      this.login = true
-      this.registration = false
+      this.email = '';
+      this.password.password = '';
+      this.password.confirm = '';
+      this.login = true;
+      this.registration = false;
+      this.registrationPasswordFieldType = 'password';
     },
     async onClickDemoButton() {
+      this.demoLoginInProgress = true
       getDemoToken()
         .then((response) => {
-          this.store$.commit('setToken', response.token);
-          this.store$.commit('setUserId', response.userId);
+          this.storeData(response);
+          this.demoLoginInProgress = false;
           this.router$.push('/dashboard');
         })
         .catch((err) => {
-          this.alert = true
-          if (err.response) {
-            this.alertMessage = err.response.data.message
-          } else {
-            console.log(err.message)
-            this.alertMessage = 'Something is wrong'
-          }
+          this.demoLoginInProgress = false;
+          this.showAlert(err);
         })
     },
     onClickOutsideAlert() {
-      this.alert = false
-      this.registrationSuccess = false
-      this.alertMessage = ''
+      this.alert = false;
+      this.alertMessage = '';
     },
-    onClickRegisterButton() {
-      this.registrationDialog = true
-      this.registration = false
+    onClickRegistrationSuccessButton() {
+      this.registrationSuccess = false;
+      this.login = true;
+      this.email = '';
+      this.password.password = '';
+      this.password.confirm = '';
     },
-    onClickLoginButton() {
-
-    },
-  },
-  watch: {
-    registrationDialog(val) {
-      if (!val) return
-      const headers = {
-        'Content-Type': 'application/json',
-      }
-      const data = {
-        'email': this.email,
-        'password': this.password.password,
-      }
-      this.email = ''
-      this.password.password = ''
-      this.password.confirm = ''
-      axios.post('http://127.0.0.1:8080/mylfa/api/v1/user/create', JSON.stringify(data), {headers})
+    async onClickRegisterButton() {
+      this.registrationInProgress = true;
+      await createUser(this.prepareData())
         .then(() => {
-          this.registrationDialog = false
-          this.login = true
-          this.registrationSuccess = true
-          this.alertMessage = 'Success'
+          this.registration = false;
+          this.registrationSuccess = true;
+          this.registrationInProgress = false;
         })
         .catch((err) => {
-          this.registration = true
-          this.registrationDialog = false
-          this.alert = true
-          if (err.response) {
-            this.alertMessage = err.response.data.message
-          } else if (err.request) {
-            this.alertMessage = err.request
-          } else {
-            this.alertMessage = err.message
-          }
+          this.registrationInProgress = false;
+          this.showAlert(err);
         })
     },
+    async onClickLoginButton() {
+      this.loginInProgress = true;
+      await getToken(this.prepareData())
+        .then((response) => {
+          this.storeData(response);
+          this.loginInProgress = false;
+          this.router$.push('/dashboard');
+        })
+        .catch((err) => {
+          this.loginInProgress = false;
+          this.showAlert(err);
+        })
+    },
+    storeData(response) {
+      this.store$.commit('setToken', response.token);
+      this.store$.commit('setUserId', response.userId);
+    },
+    prepareData() {
+      return {
+        'email': this.email,
+        'password': this.password.password,
+      };
+    },
+    showAlert(err: any) {
+      this.alert = true;
+      if (err.response) {
+        this.alertMessage = err.response.data.message;
+      } else {
+        console.error(err.message);
+        this.alertMessage = 'Something is wrong';
+      }
+    }
   },
 });
 </script>

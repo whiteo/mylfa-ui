@@ -4,7 +4,8 @@
       <v-divider></v-divider>
       <v-row justify='center' no-gutters>
         <v-col class='text-center' cols='12'>
-          <span>&copy; {{ currentYear }} {{ $t('footerText') }} FE v.{{ feVersion }} | BE v.{{ beVersion }}</span>
+          <span>&copy; {{ currentYear }} {{ $t('footerText') }} <a :href="feLink">FE v.{{ feVersion }}</a> | <a
+            :href="beLink">BE v.{{ beVersion }}</a></span>
         </v-col>
       </v-row>
     </div>
@@ -14,13 +15,15 @@
 <script lang='ts'>
 import {defineComponent} from 'vue';
 import packageJson from '../../package.json';
-import {getBEVersion} from '@/api/api';
+import {getBEVersion} from "@/api/util";
 
 export default defineComponent({
   name: 'Footer',
   data() {
     return {
       beVersion: '',
+      feLink: 'https://github.com/whiteo/mylfa-ui/',
+      beLink: 'https://github.com/whiteo/mylfa/',
     };
   },
   computed: {
